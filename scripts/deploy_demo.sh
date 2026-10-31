@@ -11,11 +11,11 @@ for ln in open('/home/kojima/work/aixec/.env', encoding='utf-8'):
         k, v = ln.split('=', 1); os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 f = ftplib.FTP(os.environ['FTP_HOST'], timeout=120); f.login(os.environ['FTP_USER'], os.environ['FTP_PASS'])
 root = '/web/proto_exbridge_jp/khyogen'
-for d in (root, root + '/khy_data', root + '/khy_assets', root + '/khyogen_rules'):
+for d in (root, root + '/khy_data', root + '/khy_assets', root + '/khyogen_rules', root + '/sample'):
     try: f.mkd(d)
     except ftplib.error_perm: pass
 files = {'public/khyogen.php': 'khyogen.php', 'public/khyogen_engine.php': 'khyogen_engine.php',
-         'demo/khyogen_config.php': 'khyogen_config.php', 'demo/index.php': 'index.php', 'demo/.htaccess': '.htaccess', 'demo/khyogen-ogp.png': 'khyogen-ogp.png',
+         'demo/khyogen_config.php': 'khyogen_config.php', 'demo/index.php': 'index.php', 'demo/.htaccess': '.htaccess', 'demo/khyogen-ogp.png': 'khyogen-ogp.png', 'demo/sample/index.html': 'sample/index.html',
          'public/khy_data/.htaccess': 'khy_data/.htaccess', 'public/khyogen_rules/.htaccess': 'khyogen_rules/.htaccess',
          'public/khy_assets/logo.png': 'khy_assets/logo.png', 'public/khy_assets/mascot.png': 'khy_assets/mascot.png'}
 for p in glob.glob('public/khyogen_rules/*.json'):

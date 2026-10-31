@@ -18,6 +18,8 @@ t('no1 全角', (bool)khy_apply(rule('common', 'no1'), [page('<p>顧客満足度
 // --- 最低価格：注記なしは拾い、追加料金の注記があれば拾わない
 t('price_from 注記なし', (bool)khy_apply(rule('common', 'price_from'), [page('<h2>トイレつまり 3,300円〜</h2><p>すぐ伺います</p>')]));
 t('price_from 注記あり', !khy_apply(rule('common', 'price_from'), [page('<h2>トイレつまり 3,300円〜</h2><p>※出張費・深夜料金は別途。作業内容によりお見積りします</p>')]));
+t('price_from 見積無料は注記ではない', (bool)khy_apply(rule('common', 'price_from'), [page('<p>トイレつまり 2,980円〜</p><p>見積無料！出張費0円！</p>')]));
+t('price_from 現地でお見積り', !khy_apply(rule('common', 'price_from'), [page('<p>2,980円〜（作業内容により現地でお見積りします）</p>')]));
 // --- 無料の条件
 t('free 条件なし', (bool)khy_apply(rule('common', 'free_condition'), [page('<p>見積無料！出張費0円！</p><p>お気軽にお電話を</p><p>' . str_repeat('あ', 150) . '</p>')]));
 t('free 条件あり', !khy_apply(rule('common', 'free_condition'), [page('<p>見積無料（ただし対象エリア外は出張費がかかります）</p>')]));

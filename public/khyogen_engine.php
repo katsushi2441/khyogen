@@ -221,12 +221,18 @@ function khy_crawl(string $start, int $max = 30, int $budget_sec = 70): array
     $scheme = (string)parse_url($first['url'], PHP_URL_SCHEME);
     $origin = $scheme . '://' . $host;
     $robots = khy_robots($origin);
+    // 入れたURLがフォルダの下なら、そのフォルダの中だけを巡回する（同じドメインに別の会社・別のサイトが同居していることがある。
+    // 2026-10-31 proto.exbridge.jp/khyogen/sample/ を診断したら、サイトマップから他のデモまで読み、そこにある「許可」で許可の表示ありと誤判定した）
+    $sp = (string)(parse_url($first['url'], PHP_URL_PATH) ?? '/');
+    $prefix = str_ends_with($sp, '/') ? $sp : preg_replace('#/[^/]*$#', '/', $sp);
+    if ($prefix === '') { $prefix = '/'; }
     $queue = []; $seen = [];
-    $add = static function (string $u, string $label) use (&$queue, &$seen, $host, $robots) {
+    $add = static function (string $u, string $label) use (&$queue, &$seen, $host, $robots, $prefix) {
         $h = strtolower((string)parse_url($u, PHP_URL_HOST));
         if ($h !== $host && $h !== 'www.' . $host && 'www.' . $h !== $host) { return; }
         if (preg_match('#\.(pdf|jpe?g|png|gif|webp|svg|zip|mp4|mp3|css|js|xml|ico|woff2?)(\?|$)#i', $u)) { return; }
         $path = (string)(parse_url($u, PHP_URL_PATH) ?? '/');
+        if (!str_starts_with($path, $prefix)) { return; }
         if (!khy_allowed($path, $robots['disallow'])) { return; }
         $k = rtrim(preg_replace('/\?.*$/', '', $u), '/');
         if (isset($seen[$k])) { return; }

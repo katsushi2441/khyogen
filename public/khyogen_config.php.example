@@ -1,0 +1,9 @@
+<?php
+// Kurage 広告表現チェック の設定。この名前のまま khyogen_config.php にコピーして使う。
+// define('KHY_TITLE', 'Kurage 広告表現チェック');
+// define('KHY_PASSWORD_HASH', '');   // 社内だけで使うなら php scripts/make_password_hash.php の結果を入れる
+// define('KHY_MAX_PAGES', 30);       // 1回の診断で見るページ数
+// define('KHY_RATE_PER_HOUR', 10);   // 1つのIPから1時間に新しく診断できる回数（0で無制限）
+// define('KHY_CACHE_HOURS', 6);
+// define('KHY_KEEP_DAYS', 30);
+// define('KHY_CANONICAL', 'https://example.co.jp/khyogen/khyogen.php');

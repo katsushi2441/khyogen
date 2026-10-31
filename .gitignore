@@ -1,0 +1,4 @@
+outputs/
+public/khy_data/*.json
+public/khy_data/*.txt
+public/khyogen_config.php

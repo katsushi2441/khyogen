@@ -68,5 +68,9 @@ t('score', $s['score'] === 83);
 t('url 127', khy_url_ok('http://127.0.0.1/') === null);
 t('url localhost', khy_url_ok('http://localhost/') === null);
 
+// --- 社内のアドレスは取りに行かない（リダイレクト先も1回ごとに確かめる）
+t('fetch 127', khy_fetch('http://127.0.0.1/')['code'] === 0);
+t('fetch localhost名', khy_fetch('http://localhost/')['code'] === 0);
+
 echo "ok $ok / ng $ng\n";
 exit($ng ? 1 : 0);

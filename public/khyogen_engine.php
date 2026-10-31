@@ -20,15 +20,57 @@ declare(strict_types=1);
 
 const KHY_UA = 'KurageHyogenCheck/1.0 (+https://kappstore.exbridge.jp/)';
 
-/** 1ページ取る。リダイレクトは5回まで、本文は2MBまで。 */
+/** 公開のIPアドレスを1つ返す。社内・予約済みのアドレスなら null（社内の機械を読みに行かせないため）。 */
+function khy_public_ip(string $host): ?string
+{
+    $ips = @gethostbynamel($host) ?: [];
+    if (!$ips) { return null; }
+    foreach ($ips as $ip) {
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) { return null; }
+    }
+    return $ips[0];
+}
+
+/**
+ * 1ページ取る。リダイレクトは5回まで、本文は2MBまで。
+ * リダイレクトは curl に任せず1回ごとに行き先を確かめ、確かめたIPに CURLOPT_RESOLVE で固定する
+ * （外のサイトから社内のアドレスへ飛ばされたり、確かめた後に名前の向き先を変えられたりしないように）。
+ */
 function khy_fetch(string $url, int $timeout = 12): array
+{
+    for ($hop = 0; $hop <= 5; $hop++) {
+        $p = parse_url($url);
+        $host = strtolower((string)($p['host'] ?? ''));
+        $scheme = strtolower((string)($p['scheme'] ?? ''));
+        if ($host === '' || !in_array($scheme, ['http', 'https'], true)) { break; }
+        $ip = khy_public_ip($host);
+        if ($ip === null) { return ['code' => 0, 'url' => $url, 'body' => '', 'ctype' => '']; }
+        $port = (int)($p['port'] ?? ($scheme === 'https' ? 443 : 80));
+        $r = khy_fetch_once($url, $timeout, "$host:$port:$ip");
+        if ($r['code'] >= 300 && $r['code'] < 400 && $r['location'] !== '') {
+            $next = khy_abs($r['location'], $url);
+            if ($next === null) { break; }
+            $url = $next;
+            continue;
+        }
+        return $r;
+    }
+    return ['code' => 0, 'url' => $url, 'body' => '', 'ctype' => ''];
+}
+
+function khy_fetch_once(string $url, int $timeout, string $resolve): array
 {
     $ch = curl_init($url);
     $buf = '';
+    $loc = '';
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => false,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_MAXREDIRS => 5,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_RESOLVE => [$resolve],
+        CURLOPT_HEADERFUNCTION => static function ($ch, $h) use (&$loc) {
+            if (stripos($h, 'location:') === 0) { $loc = trim(substr($h, 9)); }
+            return strlen($h);
+        },
         CURLOPT_TIMEOUT => $timeout,
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_USERAGENT => KHY_UA,
@@ -46,7 +88,7 @@ function khy_fetch(string $url, int $timeout = 12): array
     $final = (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
     $ctype = (string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
-    return ['code' => $code, 'url' => $final !== '' ? $final : $url, 'body' => $buf, 'ctype' => $ctype];
+    return ['code' => $code, 'url' => $final !== '' ? $final : $url, 'body' => $buf, 'ctype' => $ctype, 'location' => $loc];
 }
 
 /** 外から入れられたURLを検める。社内の機械（127.0.0.1・192.168…）は診断しない。 */

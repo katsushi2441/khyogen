@@ -15,7 +15,7 @@ for d in (root, root + '/khy_data', root + '/khy_assets', root + '/khyogen_rules
     try: f.mkd(d)
     except ftplib.error_perm: pass
 files = {'public/khyogen.php': 'khyogen.php', 'public/khyogen_engine.php': 'khyogen_engine.php',
-         'demo/khyogen_config.php': 'khyogen_config.php', 'demo/index.php': 'index.php', 'demo/.htaccess': '.htaccess',
+         'demo/khyogen_config.php': 'khyogen_config.php', 'demo/index.php': 'index.php', 'demo/.htaccess': '.htaccess', 'demo/khyogen-ogp.png': 'khyogen-ogp.png',
          'public/khy_data/.htaccess': 'khy_data/.htaccess', 'public/khyogen_rules/.htaccess': 'khyogen_rules/.htaccess',
          'public/khy_assets/logo.png': 'khy_assets/logo.png', 'public/khy_assets/mascot.png': 'khy_assets/mascot.png'}
 for p in glob.glob('public/khyogen_rules/*.json'):

@@ -202,7 +202,7 @@ function khy_priority(string $url, string $label): int
 {
     $s = strtolower(rawurldecode($url)) . ' ' . $label;
     $p = 0;
-    foreach (['特定商取引', 'tokusho', 'law', 'legal', '会社概要', 'company', 'about', 'corporate', '料金', '価格', 'price', 'fee', 'plan', '費用', 'よくある', 'faq', '口コミ', 'voice', 'review', 'お客様の声', 'service', 'サービス', '許可', 'license'] as $k) {
+    foreach (['特定商取引', 'tokusho', 'law', 'legal', '会社概要', 'company', 'about', 'corporate', '料金', '価格', 'price', 'fee', 'plan', '費用', 'よくある', 'faq', '口コミ', 'voice', 'review', 'お客様の声', 'service', 'サービス', '許可', 'license', '情報提供', '情報公開', 'マージン', 'disclosure', '派遣法', '職業安定法', '労使協定'] as $k) {
         if (str_contains($s, $k)) { $p += 10; }
     }
     return $p - substr_count(parse_url($url, PHP_URL_PATH) ?? '/', '/');
@@ -357,6 +357,10 @@ function khy_apply(array $rule, array $pages): array
         }
         if ($whenHit && !khy_any($all, $rule['need'])) { $hits[] = $whenHit; }
     } elseif ($type === 'site_missing_each') {
+        // when があれば、その話をしているサイトだけを見る（派遣だけの会社に、紹介の公開項目を求めない）
+        if (!empty($rule['when']) && !khy_any($all, $rule['when'])) { return []; }
+        // skip_if があれば、別の形（PDF・公的サイト）で公開していると見なして点検しない。PDFの中までは読まないため
+        if (!empty($rule['skip_if']) && khy_any($all, $rule['skip_if'])) { return []; }
         $miss = [];
         foreach ($rule['items'] as $it) { if (!khy_any($all, $it['need'])) { $miss[] = $it['label']; } }
         if ($miss) { $hits[] = ['url' => $pages[0]['url'], 'snippet' => 'サイトの中で見当たらないもの：' . implode('、', $miss)]; }

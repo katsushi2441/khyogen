@@ -70,6 +70,39 @@ t('score', $s['score'] === 83);
 t('url 127', khy_url_ok('http://127.0.0.1/') === null);
 t('url localhost', khy_url_ok('http://localhost/') === null);
 
+// --- 人材派遣・職業紹介（2026-11-02 追加）
+$d = khy_detect([page('<p>人材派遣・紹介予定派遣・人材紹介。派遣スタッフ募集。派遣先企業さまへ</p>')]);
+t('detect haken', $d['id'] === 'haken');
+t('haken_kyoka なし', (bool)khy_apply(rule('haken', 'haken_kyoka'), [page('<p>人材派遣のサンプル社です。派遣のお仕事多数</p>')]));
+t('haken_kyoka あり', !khy_apply(rule('haken', 'haken_kyoka'), [page('<p>人材派遣</p><p>許可 一般労働者派遣事業 派23－300000</p>')]));
+t('haken_kyoka 半角', !khy_apply(rule('haken', 'haken_kyoka'), [page('<p>人材派遣</p><p>労働者派遣事業許可：派23-300000</p>')]));
+t('shokai_kyoka なし', (bool)khy_apply(rule('haken', 'shokai_kyoka'), [page('<p>人材紹介で転職をサポート</p>')]));
+t('shokai_kyoka あり', !khy_apply(rule('haken', 'shokai_kyoka'), [page('<p>人材紹介</p><p>有料職業紹介事業 23－ユ－300000</p>')]));
+$hd = khy_apply(rule('haken', 'haken_joho'), [page('<p>人材派遣のお仕事。派遣スタッフ募集</p>')]);
+t('haken_joho 欠け', (bool)$hd && str_contains($hd[0]['snippet'], 'マージン率'));
+t('haken_joho そろっている', !khy_apply(rule('haken', 'haken_joho'), [page('<p>人材派遣</p><p>マージン率 25.1%　労使協定方式　教育訓練の内容</p>')]));
+t('haken_joho 情報公開ページあり', !khy_apply(rule('haken', 'haken_joho'), [page('<p>人材派遣</p><h1>労働者派遣法第２３条第５項に基づく情報公開</h1><p>札幌オフィス PDF</p>')]));
+t('haken_joho 総合サイトの案内', !khy_apply(rule('haken', 'haken_joho'), [page('<p>人材派遣</p><p>情報は厚生労働省の人材サービス総合サイトをご覧ください</p>')]));
+t('haken_joho 派遣をしていない', !khy_apply(rule('haken', 'haken_joho'), [page('<p>人材紹介で転職をサポート</p>')]));
+$sj = khy_apply(rule('haken', 'shokai_joho'), [page('<p>人材紹介 紹介手数料 年収の30％ 返金規定あり</p>')]);
+t('shokai_joho 実績の欠け', (bool)$sj && str_contains($sj[0]['snippet'], '就職者数') && !str_contains($sj[0]['snippet'], '手数料'));
+t('shokai_joho 情報提供ページあり', !khy_apply(rule('haken', 'shokai_joho'), [page('<p>人材紹介</p><h1>職業安定法に基づく情報提供</h1>')]));
+t('shokai_joho 紹介をしていない', !khy_apply(rule('haken', 'shokai_joho'), [page('<p>人材派遣のお仕事</p>')]));
+t('seibetsu 女性歓迎', (bool)khy_apply(rule('haken', 'seibetsu'), [page('<p>【経理事務】女性歓迎！週3日〜</p>')]));
+t('seibetsu 営業マン', (bool)khy_apply(rule('haken', 'seibetsu'), [page('<p>ルート営業マン募集</p>')]));
+t('seibetsu お客様の声の営業マン', !khy_apply(rule('haken', 'seibetsu'), [page('<p>最前線で活躍する営業マンを支えるために、事務スタッフを採用しました</p>')]));
+t('seibetsu 女性が活躍', !khy_apply(rule('haken', 'seibetsu'), [page('<p>女性やシニアが生き生きと働ける場を広げてきました</p>')]));
+t('nenrei 上限', (bool)khy_apply(rule('haken', 'nenrei'), [page('<p>事務スタッフ（35歳まで）</p>')]));
+t('nenrei 例外の理由あり', !khy_apply(rule('haken', 'nenrei'), [page('<p>35歳未満（長期勤続によるキャリア形成のため）</p>')]));
+t('nenrei 60歳以上', !khy_apply(rule('haken', 'nenrei'), [page('<p>60歳以上の方の受け入れ期間の制限はありません</p>')]));
+t('nenrei 18歳未満', !khy_apply(rule('haken', 'nenrei'), [page('<p>18歳未満の方はご応募いただけません</p>')]));
+t('jizen_mensetsu 派遣先の面接', (bool)khy_apply(rule('haken', 'jizen_mensetsu'), [page('<p>派遣先企業での面接があります</p>' . str_repeat('ー', 90))]));
+t('jizen_mensetsu 紹介予定派遣', !khy_apply(rule('haken', 'jizen_mensetsu'), [page('<p>紹介予定派遣は人材派遣と異なり、派遣先企業が派遣開始前に求職者の面接・選考を行うことが可能です</p>')]));
+t('jizen_mensetsu 禁止の説明', !khy_apply(rule('haken', 'jizen_mensetsu'), [page('<p>4.派遣社員の事前面接、選考はNG 事前に派遣社員を指名する、派遣就業の開始前に面接を行う等</p>')]));
+t('jizen_mensetsu 職場見学', !khy_apply(rule('haken', 'jizen_mensetsu'), [page('<p>ご希望の方は職場見学ができます</p>')]));
+t('kyujin_koshunyu 根拠なし', (bool)khy_apply(rule('haken', 'kyujin_koshunyu'), [page('<p>高収入のお仕事多数！</p>' . str_repeat('ー', 90))]));
+t('kyujin_koshunyu 金額あり', !khy_apply(rule('haken', 'kyujin_koshunyu'), [page('<p>手厚い人員配置・高収入・賞与年2回＊年収520万円〜</p>')]));
+
 // --- 社内のアドレスは取りに行かない（リダイレクト先も1回ごとに確かめる）
 t('fetch 127', khy_fetch('http://127.0.0.1/')['code'] === 0);
 t('fetch localhost名', khy_fetch('http://localhost/')['code'] === 0);
